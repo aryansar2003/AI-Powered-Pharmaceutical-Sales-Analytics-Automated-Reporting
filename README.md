@@ -1,34 +1,21 @@
-Absolutely. Based on what you've actually built, I’d use this README. It tells the full story without overselling the project.
-
-Copy this into **`README.md`**:
-
-````markdown
 # AI-Powered Pharmaceutical Sales Analytics & Automated Reporting
 
-An AI-powered pharmaceutical sales analytics system that combines **Python/Pandas, MySQL, n8n, Google Gemini, JavaScript, and QuickChart** to analyze pharmaceutical sales data through natural-language questions and generate automated business reports with visualizations.
+An end-to-end pharmaceutical sales analytics project that combines **Python/Pandas, MySQL, n8n, Google Gemini, JavaScript, and QuickChart**.
+
+The project starts with raw pharmaceutical sales data, performs data cleaning and validation using Python/Pandas, loads the cleaned data into MySQL, and then uses an n8n AI workflow to answer natural-language business questions and generate sales reports with charts.
 
 ---
 
 ## Project Overview
 
-This project was built as an end-to-end data analytics and automation workflow.
-
-The project starts with a raw pharmaceutical sales dataset, which is cleaned and validated using **Python and Pandas**. The cleaned data is then analyzed using **MySQL** and connected to an **n8n AI workflow**.
-
-Users can ask business questions in natural language. The AI Agent uses Google Gemini to understand the request, generates a read-only SQL query, retrieves the required data from MySQL, analyzes the results, and returns a business-oriented response.
-
-For chart requests and full reports, JavaScript dynamically converts the AI-generated chart data into **QuickChart** visualizations.
-
----
-
-## Architecture
+The project follows this pipeline:
 
 ```text
 Raw Pharmaceutical Sales Data
             ↓
       Python / Pandas
             ↓
-   Data Cleaning & Validation
+ Data Cleaning & Validation
             ↓
           MySQL
             ↓
@@ -36,7 +23,7 @@ Raw Pharmaceutical Sales Data
             ↓
         AI Agent
        ↙         ↘
- Google Gemini   MySQL Tool
+Google Gemini   MySQL Tool
        ↓
   Business Analysis
        ↓
@@ -45,361 +32,353 @@ Raw Pharmaceutical Sales Data
      QuickChart
        ↓
  Answer + Charts / Report
-````
+The goal was to build a practical analytics system rather than only perform static data analysis.
 
----
+Tech Stack
+Python
+Pandas
+MySQL
+n8n
+Google Gemini
+JavaScript
+QuickChart
+GitHub
+1. Data Cleaning & Exploration
 
-## Technologies Used
+The raw pharmaceutical sales dataset was first analyzed and cleaned using Python and Pandas.
 
-* **Python**
-* **Pandas**
-* **MySQL**
-* **n8n**
-* **Google Gemini**
-* **JavaScript**
-* **QuickChart**
-* **GitHub**
+The original dataset contained:
 
----
+254,082 rows
+18 columns
+No missing values
 
-## Dataset
+Important columns include:
 
-The pharmaceutical sales dataset contains transactional sales information including:
+Distributor
+Customer Name
+City
+Country
+Latitude
+Longitude
+Channel
+Sub-channel
+Product Name
+Product Class
+Quantity
+Price
+Sales
+Month
+Year
+Name of Sales Rep
+Manager
+Sales Team
+Data Quality Checks
 
-* Distributor
-* Customer
-* City
-* Country
-* Channel
-* Sub-channel
-* Product
-* Product Class
-* Quantity
-* Price
-* Sales
-* Month
-* Year
-* Sales Representative
-* Manager
-* Sales Team
-* Latitude / Longitude
+The notebook performs:
 
-The dataset contains pharmaceutical sales transactions across multiple years, products, customers, channels, and sales teams.
+Dataset structure inspection
+Data type inspection
+Descriptive statistics
+Missing-value checks
+Negative quantity investigation
+Negative sales investigation
+Duplicate detection
+Zero-quantity transaction investigation
+Date feature engineering
+Sales formula validation
+Text whitespace cleaning
+Negative Transactions
 
----
+The dataset contains 2,633 transactions with negative quantity.
 
-## 1. Data Cleaning & Validation — Python/Pandas
+Every negative-quantity transaction also has negative sales.
 
-The initial dataset was explored and cleaned using Pandas.
+These transactions occur across:
 
-The analysis included:
+All 240 products
+All 6 product classes
 
-* Dataset shape and structure inspection
-* Data type inspection
-* Missing-value checks
-* Duplicate-row detection
-* Negative quantity investigation
-* Negative sales investigation
-* Zero-quantity transaction investigation
-* Duplicate removal
-* Creation of a proper date column from month and year
-* Final data-quality validation
-* Sales consistency checks
+Rather than automatically deleting them, they were retained because they may represent returns or sales adjustments.
 
-The cleaned dataset was then prepared for database analysis.
+Duplicate Rows
 
-### File
+4 exact duplicate rows were identified and removed.
 
-`pharma_sales_data_cleaning.ipynb`
+Zero-Quantity Rows
 
----
+27 rows contained:
 
-## 2. SQL Analysis — MySQL
+Quantity = 0
+Sales = 0
 
-The cleaned data was loaded into MySQL for structured analysis.
+These rows were removed because they do not represent an actual transaction.
 
-The SQL analysis includes queries for:
+Date Feature
 
-* Total number of transactions
-* Total sales
-* Sales by product class
-* Negative transactions
-* Yearly sales
-* Highest-selling product class
+The separate Month and Year columns were combined into a proper Date column using Pandas.
 
-### File
+Sales Validation
 
-`pharma_sales_sql_queries.sql`
+The notebook also checks whether:
 
----
+Quantity × Price = Sales
 
-## 3. AI Analytics Workflow — n8n
+There are 29 rows where the calculation does not match exactly.
 
-The cleaned sales database was connected to an n8n workflow.
+These rows contain unusually precise non-integer quantity values. They were retained rather than arbitrarily modified, with Sales treated as the more reliable field for sales analysis.
+
+Final Dataset
+
+After removing duplicate and zero-quantity rows:
+
+254,051 rows
+
+The cleaned dataset was exported as:
+
+pharma_sales_clean.csv
+Python File
+
+pharma_sales_data_cleaning_and_analysis.ipynb
+
+2. MySQL Analysis
+
+The cleaned dataset was loaded into a MySQL database named:
+
+pharma_analytics
+
+with the main table:
+
+pharma_sales
+
+The SQL file contains queries for:
+
+Total transaction count
+Total sales
+Sales by product class
+Negative transaction count
+Yearly sales
+Highest-selling product class
+SQL File
+
+sales_analysis.sql
+
+3. AI-Powered Analytics with n8n
+
+After the data was prepared and stored in MySQL, an AI analytics workflow was built using n8n.
 
 The workflow contains:
 
-### Chat Trigger
+Chat Trigger
 
-Users interact with the analytics system through the n8n chat interface.
+Users can submit business questions through the n8n chat interface.
 
-### AI Agent
+AI Agent
 
-The AI Agent interprets the user's business question and determines what data is required.
+The AI Agent interprets the user's request and determines what data needs to be retrieved.
 
-### Google Gemini
+Google Gemini
 
-Gemini is used as the language model for understanding requests and generating the required SQL/analysis workflow.
+Google Gemini acts as the language model used by the AI Agent.
 
-### MySQL Tool
+MySQL Tool
 
-The AI Agent can execute read-only SQL queries against the `pharma_sales` table.
+The AI Agent can execute read-only SQL queries against the pharmaceutical sales database.
 
-The workflow restricts database operations to read-only queries and does not allow operations such as:
+The workflow restricts the database tool to read-only SQL operations.
 
-```text
+Write operations such as:
+
 INSERT
 UPDATE
 DELETE
 DROP
 ALTER
 TRUNCATE
-```
 
-### Simple Memory
+are not allowed.
 
-The workflow includes conversational memory to maintain context during the interaction.
+Simple Memory
 
-### JavaScript
+A memory component is connected to the AI Agent to maintain conversational context.
 
-A JavaScript Code node processes the AI Agent's structured response and dynamically creates chart URLs.
+JavaScript
 
-### QuickChart
+The JavaScript Code node processes the structured response returned by the AI Agent.
 
-QuickChart is used to render charts from the data returned by the AI Agent.
+It extracts:
 
----
+Chart title
+Chart type
+Labels
+Values
 
-## 4. Natural-Language Analytics
+and dynamically generates QuickChart URLs.
 
-The system allows users to ask questions such as:
+QuickChart
 
-```text
-What is the total sales by product class?
-```
+QuickChart is used to generate visualizations from the chart data returned by the AI Agent.
+
+4. Natural-Language Business Questions
+
+The system allows users to interact with the sales database using natural language.
+
+For example:
+
+What is the highest-selling product class?
 
 or:
 
-```text
 Show total sales by product class as a chart.
-```
 
-The AI Agent retrieves the required information from MySQL and returns the result in a business-friendly format.
+The AI Agent determines the required SQL query, retrieves the data from MySQL, and converts the result into a business-oriented response.
 
----
+5. Chart Generation
 
-## 5. Automated Charts
+The workflow supports dynamic chart generation.
 
-When a chart is requested, the AI Agent returns structured chart data containing:
+Examples include:
 
-* Chart title
-* Chart type
-* Labels
-* Values
+Sales by Product Class
+Monthly Sales Trend
+Sales by Channel
+Top 10 Products
+Top 10 Sales Representatives
 
-The JavaScript node converts this information into a QuickChart visualization.
+The AI Agent returns structured chart information, which is then processed by JavaScript and rendered using QuickChart.
 
-Supported chart types include:
-
-* Bar charts
-* Line charts
-
-Examples of generated visualizations include:
-
-* Sales by Product Class
-* Monthly Sales Trend
-* Sales by Channel
-* Top Products
-* Top Sales Representatives
-
----
-
-## 6. Full Sales Report
-
-The workflow also supports a full pharmaceutical sales report.
-
-The report can include:
-
-### Executive Summary
-
-* Total sales
-* Total quantity
-* Unique products
-* Unique customers
-* Number of distributors
-
-### Sales Performance
-
-* Sales by product class
-* Sales by channel
-* Monthly sales trend
-
-### Top Performers
-
-* Top 10 products
-* Top 10 customers
-* Top 10 sales representatives
-
-### Business Insights
-
-* Highest-selling product class
-* Lowest-selling product class
-* Highest-sales month
-* Highest-performing sales team
-* Other patterns supported by the available data
-
-The full report can also generate multiple charts automatically.
-
----
-
-## 7. Example Workflow
-
-A typical interaction follows this process:
-
-```text
-User:
-"Show total sales by product class as a chart."
-
-        ↓
-
-n8n Chat Trigger
-
-        ↓
+For example:
 
 AI Agent
+   ↓
+Chart Data
+   ↓
+JavaScript
+   ↓
+QuickChart URL
+   ↓
+Chart displayed in response
+6. Full Sales Report
 
-        ↓
+The AI Agent also supports a full pharmaceutical sales report.
 
-Google Gemini determines the required analysis
+The report workflow is designed to analyze:
 
-        ↓
+Executive Summary
+Total sales
+Total quantity
+Unique products
+Unique customers
+Number of distributors
+Sales Performance
+Sales by product class
+Sales by channel
+Monthly sales trend
+Top Performers
+Top 10 products by sales
+Top 10 customers by sales
+Top 10 sales representatives by sales
+Business Insights
+Highest-selling product class
+Lowest-selling product class
+Highest-sales month
+Highest-performing sales team
+Other patterns supported by the database
 
-MySQL executes a read-only SQL query
+The full-report mode also generates multiple charts.
 
-        ↓
+7. Example Workflow
 
-AI Agent analyzes the returned data
+A typical user request follows this process:
 
-        ↓
+User asks a business question
+            ↓
+n8n Chat Trigger
+            ↓
+AI Agent
+            ↓
+Google Gemini
+            ↓
+AI determines required SQL
+            ↓
+MySQL executes read-only query
+            ↓
+AI analyzes returned results
+            ↓
+JavaScript processes output
+            ↓
+QuickChart generates visualization
+            ↓
+Business answer + chart
+8. n8n Workflow
 
-JavaScript processes chart data
+The exported n8n workflow is available in:
 
-        ↓
-
-QuickChart generates the visualization
-
-        ↓
-
-User receives:
-Business Answer + Chart
-```
-
----
-
-## Screenshots
-
-### n8n Automation Workflow
-
-![n8n Workflow](screenshots/n8n_workflow.png)
-
-### Single Question with Chart
-
-![Single Question Chart](screenshots/single_question_chart.png)
-
-### Full Sales Report
-
-![Full Sales Report](screenshots/full_sales_report.png)
-
----
-
-## Project Structure
-
-```text
+pharma_sales_ai_automation.json
+9. Project Files
 AI-Powered-Pharmaceutical-Sales-Analytics-Automated-Reporting/
 │
-├── pharma_sales_data_cleaning.ipynb
-├── pharma_sales_sql_queries.sql
+├── README.md
+│
+├── pharma_sales_data_cleaning_and_analysis.ipynb
+│
+├── sales_analysis.sql
+│
 ├── pharma_sales_ai_automation.json
 │
-├── screenshots/
-│   ├── n8n_workflow.png
-│   ├── single_question_chart.png
-│   └── full_sales_report.png
-│
-└── README.md
-```
-
----
-
-## Key Learning Outcomes
+└── n8n_workflow.png
+10. Key Skills Demonstrated
 
 This project demonstrates practical experience with:
 
-* Data cleaning using Pandas
-* Exploratory data analysis
-* SQL-based data analysis
-* MySQL database integration
-* AI-assisted analytics
-* Natural-language-to-SQL workflows
-* n8n workflow automation
-* API-based AI integration
-* JavaScript data processing
-* Dynamic chart generation
-* Automated business reporting
+Data cleaning using Pandas
+Data quality validation
+Exploratory data analysis
+SQL analysis
+MySQL
+Natural-language analytics
+AI-assisted SQL generation
+n8n workflow automation
+Google Gemini API integration
+JavaScript data processing
+Dynamic chart generation
+Business reporting
+End-to-end analytics workflow development
+11. Project Outcome
 
----
+This project combines traditional data analytics with AI-powered workflow automation.
 
-## End-to-End Data Flow
+Instead of manually writing a SQL query for every business question, users can interact with the sales database using natural language.
 
-```text
-Python / Pandas
-      ↓
-Cleaned Data
-      ↓
-MySQL Database
-      ↓
-n8n
-      ↓
-Google Gemini
-      ↓
-AI-Generated SQL
-      ↓
-MySQL Results
-      ↓
-Business Analysis
-      ↓
-JavaScript
-      ↓
-QuickChart
-      ↓
-Interactive Analytics Response
-```
+The system connects:
 
----
+Data Cleaning
+     +
+Database Analysis
+     +
+Generative AI
+     +
+Workflow Automation
+     +
+Data Visualization
 
-## Author
+to create an end-to-end pharmaceutical sales analytics solution.
 
-**Aryan Saraswat**
+Author
+
+Aryan Saraswat
 
 B.Tech — Information Technology
 
-Interested in Data Analytics, Business Analytics, BI, and AI-powered automation.
+Interested in Data Analytics, Business Analytics, Business Intelligence, and AI-powered automation.
 
 
-pharma_sales_data_cleaning.ipynb
-pharma_sales_sql_queries.sql
+### One correction from your previous README
+
+Your actual GitHub filenames, from the screenshot you showed me, are:
+
+```text
+pharma_sales_data_cleaning_and_analysis.ipynb
+sales_analysis.sql
 pharma_sales_ai_automation.json
 n8n_workflow.png
-README.md
-````
-
