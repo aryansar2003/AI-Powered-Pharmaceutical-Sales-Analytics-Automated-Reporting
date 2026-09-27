@@ -51,7 +51,7 @@ The raw dataset (254,082 rows, 18 columns, no missing values) was investigated b
 | Negative quantity | 2,633 rows (~1%), every one also has negative sales, spans all 240 products and all 6 product classes | Kept — likely returns/adjustments, not errors |
 | Duplicate rows | 4 exact duplicates | Removed |
 | Zero-quantity rows | 27 rows, all with Sales = 0 too | Removed |
-| `Quantity × Price = Sales` check | 29 rows show a mismatch — due to decimal/rounding differences in `Quantity`, not a real data error | No action needed; Sales treated as the reliable field for these rows |
+| `Quantity × Price = Sales` check |  29 rows show a mismatch | No action needed; Sales treated as the reliable field for these rows |
 
 **Final dataset: 254,051 rows**, loaded into MySQL as `pharma_analytics.pharma_sales`. A `Date` column was engineered from `Month` + `Year` for time-series analysis.
 
